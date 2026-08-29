@@ -21,6 +21,7 @@ from api.dependencies import get_classifier, get_explainer
 from api.schemas import ClaimFeatures, PredictionResponse, TopFactor
 from src.explainability.shap_explainer import explain_single_claim
 from src.utils.logger import get_logger
+from src.blockchain.hashing import hash_decision_record, build_hashable_record
 
 logger = get_logger(__name__)
 

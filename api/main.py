@@ -11,6 +11,7 @@ auto-generated from the Pydantic schemas in api/schemas.py.
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import predict, recourse
 from src.utils.logger import get_logger
@@ -22,7 +23,13 @@ app = FastAPI(
     description="Explainable AI system for healthcare claim decision support.",
     version="0.1.0",
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Vite's default dev server URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(predict.router, tags=["Prediction"])
 app.include_router(recourse.router, tags=["Recourse"])
 
