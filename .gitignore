@@ -1,31 +1,6 @@
-# Virtual environment
 venv/
-.venv/
-
-# Python cache
+frontend/node_modules/
 __pycache__/
 *.pyc
-
-# Data (large, not reproducible-by-diff, and often not license-safe to publish)
-data/raw/*
-data/processed/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
-
-# Generated model/log artifacts
-# NOTE: outputs/models/ IS tracked (not ignored) -- teammates working on
-# Supabase/blockchain/frontend need the trained model to run the API
-# without retraining from scratch. Logs/metrics/plots stay ignored since
-# they're regenerable and not needed to run the API.
-outputs/logs/*
-outputs/metrics/*
-outputs/shap_plots/*
-!outputs/logs/.gitkeep
-!outputs/metrics/.gitkeep
-!outputs/shap_plots/.gitkeep
-
-# Jupyter checkpoints
-.ipynb_checkpoints/
-
-# Environment variables (will matter once we add Supabase/API keys)
-.env
+.pytest_cache/
+data/processed/train.parquet
