@@ -125,6 +125,12 @@ class PredictionResponse(BaseModel):
     confidence: float = Field(..., description="How far the probability sits from the 0.5 decision boundary")
     routing: Literal["Final Decision", "Human Reviewer Queue"]
     top_factors: list[TopFactor]
+    
+decision_id: str | None = None
+decision_hash: str | None = None
+transaction_hash: str | None = None
+block_number: int | None = None
+
 
 
 class RecourseChange(BaseModel):
@@ -140,4 +146,4 @@ class Counterfactual(BaseModel):
 class RecourseResponse(BaseModel):
     applicable: bool = Field(..., description="False if the claim was already predicted Approve")
     message: str
-    counterfactuals: list[Counterfactual] = []
+    counterfactuals: list[Counterfactual] = Field(default_factory=list)

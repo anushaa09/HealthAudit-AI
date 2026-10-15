@@ -4,3 +4,16 @@ __pycache__/
 *.pyc
 .pytest_cache/
 data/processed/train.parquet
+blockchain/.env
+.env
+blockchain/node_modules/
+frontend/node_modules/
+frontend/dist/
+venv/
+venv-linux/
+
+blockchain/node_modules/
+blockchain/artifacts/
+blockchain/cache/
+
+outputs/logs/*.log
