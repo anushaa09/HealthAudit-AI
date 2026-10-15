@@ -1,32 +1,23 @@
-# HealthAudit-AI -- Python dependencies
-#
-# NOTE: Scoped to the CURRENT phase only (ML pipeline: loading, preprocessing,
-# training, evaluation, SHAP explainability). We deliberately do NOT include
-# FastAPI, Supabase client, DiCE, or blockchain-related packages yet --
-# those will be added to this file when we integrate those phases later,
-# not before. Keeping requirements.txt scoped to what's actually used
-# avoids installing (and debugging) packages before we need them.
 
-# --- Core data handling ---
+fastapi
+uvicorn
+gunicorn
+python-dotenv
+pydantic
+python-multipart
+
 pandas>=2.1,<3.0
 numpy>=1.26,<2.0
-pyarrow>=14.0          # Parquet read/write support for pandas (used for processed data)
-
-# --- Machine learning ---
+pyarrow>=14.0
 scikit-learn>=1.3,<1.5
 xgboost>=2.0,<3.0
-
-# --- Explainability ---
 shap>=0.44
-
-# --- Visualization (EDA, evaluation plots) ---
 matplotlib>=3.8
 seaborn>=0.13
 
-# --- Notebook environment ---
-jupyter>=1.0
-ipykernel>=6.29
+supabase
+web3
+requests
+httpx
 
-# --- Dev / code quality ---
-python-dotenv>=1.0     # For later use: environment variable management
-uvicorn
+dice-ml
