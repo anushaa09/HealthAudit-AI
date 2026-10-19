@@ -274,17 +274,26 @@ def anchor_decision(decision_id: str, decision_hash: str):
 
         print("Blockchain transaction confirmed!")
 
-        # Read back and verify the stored record.
-        print("Submitted hash:", decision_hash_hex)
-        print("Stored hash:", stored_hash_hex)
+        
+# Read back and verify the stored record.
         stored_hash, stored_timestamp = (
-            contract.functions.getHash(decision_id).call()
+          contract.functions.getHash(decision_id).call()
         )
 
         if isinstance(stored_hash, (bytes, bytearray)):
             stored_hash_hex = bytes(stored_hash).hex()
         else:
             stored_hash_hex = str(stored_hash).removeprefix("0x")
+
+            print("Submitted hash:", decision_hash_hex)
+            print("Stored hash:", stored_hash_hex)
+
+        if stored_hash_hex.lower() != decision_hash_hex.lower():
+            raise RuntimeError(
+        "Transaction succeeded, but stored hash does not match "
+        "the submitted hash."
+    )
+
 
         if stored_hash_hex.lower() != decision_hash_hex:
             raise RuntimeError(
