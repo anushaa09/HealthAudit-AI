@@ -1,3 +1,4 @@
+
 """
 main.py
 
@@ -47,10 +48,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-    "http://localhost:5173",
-    "https://healthaudit-ai.vercel.app",
-    "https://healthaudit-relwqjjt6-nandita-gaurs-projects.vercel.app",
-],
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://healthaudit-ai.vercel.app",
+        "https://healthaudit-relwqjjt6-nandita-gaurs-projects.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,27 +73,17 @@ app.include_router(
     tags=["Recourse"],
 )
 
-app.include_router(
-    anchor.router,
-)
+app.include_router(anchor.router)
 
 
 # -------------------------------------------------------------------
 # Health check
 # -------------------------------------------------------------------
 
-@app.get(
-    "/health",
-    tags=["System"],
-)
+@app.get("/health", tags=["System"])
 def health_check() -> dict:
-    """
-    Basic liveness check.
-    """
-
-    return {
-        "status": "ok"
-    }
+    """Basic liveness check."""
+    return {"status": "ok"}
 
 
 # -------------------------------------------------------------------
@@ -100,10 +92,5 @@ def health_check() -> dict:
 
 @app.on_event("startup")
 def on_startup() -> None:
-    """
-    Log API startup.
-    """
-
-    logger.info(
-        "HealthAudit-AI API starting up..."
-    )
+    """Log API startup."""
+    logger.info("HealthAudit-AI API starting up...")
