@@ -3,7 +3,6 @@ import axios from 'axios';
 import './App.css';
 
 const API_BASE = 'https://healthaudit-ai.onrender.com';
-
 const CONDITIONS = [
   { key: 'alzheimer', label: "Alzheimer's / Dementia", severity: 2 },
   { key: 'chf', label: 'Heart Failure', severity: 4 },
