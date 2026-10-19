@@ -1,3 +1,4 @@
+
 import uuid
 
 import pandas as pd
@@ -26,7 +27,6 @@ def predict_claim(
     classifier=Depends(get_classifier),
     explainer=Depends(get_explainer),
 ) -> PredictionResponse:
-
     # 1. Generate prediction and SHAP explanation.
     claim_features = claim.model_dump()
     claim_df = pd.DataFrame([claim_features])
@@ -41,6 +41,12 @@ def predict_claim(
 
         probability = float(explanation["predicted_probability"])
         label = int(explanation["predicted_label"])
+
+        if label not in (0, 1):
+            raise ValueError(f"Unexpected prediction label: {label}")
+
+        if not 0.0 <= probability <= 1.0:
+            raise ValueError("Predicted probability must be between 0 and 1.")
 
     except Exception as exc:
         logger.exception("Prediction or SHAP explanation failed")
@@ -74,7 +80,7 @@ def predict_claim(
     decision_hash = hash_decision_record(hashable_record)
     decision_id = str(uuid.uuid4())
 
-    # 3. Persist the audit record in Supabase first.
+    # 3. Save the audit record before attempting blockchain anchoring.
     row = {
         "decision_id": decision_id,
         "claim_features": claim_features,
@@ -119,7 +125,7 @@ def predict_claim(
                 "Blockchain result did not contain a transaction hash."
             )
 
-        # 5. Update the existing Supabase record.
+        # 5. Save transaction details against the existing audit record.
         update_result = (
             supabase.table("audit_decisions")
             .update({
@@ -162,11 +168,11 @@ def predict_claim(
             },
         ) from exc
 
-    # 6. Return prediction and audit proof.
+    # 6. Return the prediction and its audit proof.
     return PredictionResponse(
-        **response_data,
-        decision_id=decision_id,
-        decision_hash=decision_hash,
-        transaction_hash=transaction_hash,
-        block_number=block_number,
-    )
+    **response_data,
+    decision_id=decision_id,
+    decision_hash=decision_hash,
+    transaction_hash=transaction_hash,
+    block_number=block_number,
+)
