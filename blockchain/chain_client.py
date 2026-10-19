@@ -275,6 +275,8 @@ def anchor_decision(decision_id: str, decision_hash: str):
         print("Blockchain transaction confirmed!")
 
         # Read back and verify the stored record.
+        print("Submitted hash:", decision_hash_hex)
+        print("Stored hash:", stored_hash_hex)
         stored_hash, stored_timestamp = (
             contract.functions.getHash(decision_id).call()
         )
