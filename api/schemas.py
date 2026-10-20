@@ -12,11 +12,12 @@ from pydantic import BaseModel, Field
 
 class ClaimFeatures(BaseModel):
     patient_id: str | None = None
+    claim_id: str | None = None
 
     """Beneficiary-level engineered features expected by the trained model."""
 
     # Coverage and demographics
-    
+
     BENE_ESRD_IND: int = Field(..., ge=0, le=1)
     BENE_HI_CVRAGE_TOT_MONS: int = Field(..., ge=0, le=12)
     BENE_SMI_CVRAGE_TOT_MONS: int = Field(..., ge=0, le=12)
