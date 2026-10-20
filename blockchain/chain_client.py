@@ -294,13 +294,6 @@ def anchor_decision(decision_id: str, decision_hash: str):
         "the submitted hash."
     )
 
-
-        if stored_hash_hex.lower() != decision_hash_hex:
-            raise RuntimeError(
-                "Transaction succeeded, but stored hash does not match "
-                "the submitted hash."
-            )
-
         print("Stored hash verified successfully.")
         print("=======================================\n")
 
