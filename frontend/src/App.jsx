@@ -19,6 +19,7 @@ const CONDITIONS = [
 ];
 
 const initialForm = {
+  patientId: '',
   name: '',
   age: '',
   sex: '1',
@@ -249,7 +250,9 @@ function App() {
     setAnchorInfo(null);
     try {
       const features = estimateClaimFeatures(form);
-      const res = await axios.post(`${API_BASE}/predict`, features);
+features.patient_id = form.patientId?.trim() || null;
+
+const res = await axios.post(`${API_BASE}/predict`, features);
       setResult(res.data);
 
       if (res.data.predicted_label_name === 'Deny') {
@@ -299,8 +302,40 @@ const handleAnchor = async () => {
 
       <form className="claim-form" onSubmit={handleSubmit}>
         <section className="form-section">
-          <h2>About you</h2>
+          <h2>About you</h2><div className="field-row">
+  <label>
+    Patient ID
+    <input
+      type="text"
+      value={form.patientId}
+      onChange={(e) => set('patientId', e.target.value)}
+      placeholder="e.g. PAT-1001"
+      required
+    />
+  </label>
+
+  <label>
+    Claim ID
+    <input
+      type="text"
+      value={form.claimId}
+      onChange={(e) => set('claimId', e.target.value)}
+      placeholder="e.g. CLM-2026-001"
+      required
+    />
+  </label>
+</div>
           <div className="field-row">
+            <label>
+  Patient ID
+  <input
+    type="text"
+    value={form.patientId}
+    onChange={(e) => set('patientId', e.target.value)}
+    placeholder="e.g. PAT-001"
+    required
+  />
+</label>
             <label>
               Full name
               <input type="text" value={form.name} onChange={(e) => set('name', e.target.value)} required />

@@ -28,6 +28,9 @@ def predict_claim(
     explainer=Depends(get_explainer),
 ) -> PredictionResponse:
     # 1. Generate prediction and SHAP explanation.
+    claim_payload = claim.model_dump()
+    patient_id = claim_payload.pop("patient_id", None)
+
     claim_features = claim.model_dump()
     claim_df = pd.DataFrame([claim_features])
 
@@ -91,6 +94,8 @@ def predict_claim(
         "routing": routing,
         "top_factors": response_data["top_factors"],
         "decision_hash": decision_hash,
+        "patient_id": claim.patient_id,
+        
     }
 
     try:
