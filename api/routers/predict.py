@@ -30,9 +30,12 @@ def predict_claim(
     # 1. Generate prediction and SHAP explanation.
     claim_payload = claim.model_dump()
     patient_id = claim_payload.pop("patient_id", None)
+    claim_payload = claim.model_dump()
+    patient_id = claim_payload.pop("patient_id", None)
+    claim_id = claim_payload.pop("claim_id", None)
+
     claim_features = claim_payload
     claim_df = pd.DataFrame([claim_features])
-
     try:
         explanation = explain_single_claim(
             classifier,
@@ -94,6 +97,8 @@ def predict_claim(
         "top_factors": response_data["top_factors"],
         "decision_hash": decision_hash,
         "patient_id": claim.patient_id,
+        "patient_id": patient_id,
+        "claim_id": claim_id,
         
     }
 
