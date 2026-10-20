@@ -30,8 +30,7 @@ def predict_claim(
     # 1. Generate prediction and SHAP explanation.
     claim_payload = claim.model_dump()
     patient_id = claim_payload.pop("patient_id", None)
-
-    claim_features = claim.model_dump()
+    claim_features = claim_payload
     claim_df = pd.DataFrame([claim_features])
 
     try:
