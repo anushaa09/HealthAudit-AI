@@ -21,3 +21,4 @@ requests
 httpx
 
 dice-ml
+pyarrow
