@@ -162,7 +162,7 @@ function readableFeatureName(feature) {
   const nameMap = {
     numeric__total_outpatient_claims: 'Number of outpatient visits',
     numeric__total_inpatient_payment_amt_log: 'Hospital care cost',
-    numeric__total_inpatient_days_log: 'Days spent in hospital',
+    numeric__total_inpatient_days_log: 'Length of hospital stay',
     numeric__total_outpatient_payment_amt_log: 'Outpatient care cost',
     numeric__distinct_inpatient_diagnosis_codes: 'Number of health issues found during hospital stay',
     numeric__distinct_outpatient_diagnosis_codes: 'Number of health issues found during outpatient visits',
@@ -177,6 +177,8 @@ function readableFeatureName(feature) {
   if (nameMap[prefixed]) return nameMap[prefixed];
   const extraNames = {
     total_inpatient_claims: 'Number of hospital stays',
+    MEDREIMB_IP: 'Hospital care cost',
+    MEDREIMB_OP: 'Outpatient care cost',
     total_inpatient_primary_payer_amt_log: 'Hospital costs paid by other insurance',
     total_outpatient_primary_payer_amt_log: 'Outpatient costs paid by other insurance',
   };
@@ -213,7 +215,7 @@ function buildPlainReason(result) {
 
   const clauses = factors.map((f) => {
     const name = readableFeatureName(f.feature).toLowerCase();
-    return `${name} was ${f.value > 0 ? 'higher' : 'lower'} than typical`;
+    return `the ${name} was ${f.value > 0 ? 'higher' : 'lower'} than typical`;
   });
 
   let clauseText;
@@ -236,14 +238,14 @@ function buildPlainRecourse(recourse) {
   if (cfs.length === 0) return 'The system did not return specific suggestions for this claim.';
   const parts = cfs.map((cf, i) => {
     const changes = (cf.changes || [])
-      .map(
-        (c) =>
-          `${readableFeatureName(c.feature)} changing from ${formatRecourseValue(c.feature, c.from_value)} to ${formatRecourseValue(c.feature, c.to_value)}`
-      )
-      .join(', ');
-    return `Option ${i + 1}: ${changes}`;
+      .map((c) => {
+        const verb = Number(c.to_value) < Number(c.from_value) ? 'reduce' : 'change';
+        return `${verb} the ${readableFeatureName(c.feature).toLowerCase()} from ${formatRecourseValue(c.feature, c.from_value)} to ${formatRecourseValue(c.feature, c.to_value)}`;
+      })
+      .join(' and ');
+    return `Option ${i + 1}: ${changes}.`;
   });
-  return `This claim could likely be approved with changes such as: ${parts.join(' — ')}.`;
+  return `This claim would likely have been approved with any one of these changes. ${parts.join(' ')}`;
 }
 
 function App() {

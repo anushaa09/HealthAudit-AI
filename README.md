@@ -12,7 +12,7 @@ HealthAudit-AI predicts whether a healthcare claim should be approved or denied,
 
 1. **Predicts** Approve / Deny from engineered beneficiary-level features (XGBoost classifier).
 2. **Explains** the decision with SHAP, showing the top five contributing factors.
-3. **Suggests recourse** with DiCE counterfactuals: for a denied claim, which adjustable claim features (cost, length of stay, utilisation) could change the outcome. Age, sex, location, coverage and existing conditions are never changed.
+3. **Suggests recourse** with DiCE counterfactuals: for a denied claim, how much lower the length of the hospital stay or the inpatient / outpatient cost would have to be for it to be approved. Only those three things are ever changed, and only downwards. Age, sex, location, coverage, existing conditions, insurer-side amounts and claim counts are held fixed. Each suggestion is rounded to tidy figures and re-checked against the trained model before it is shown.
 4. **Audits** every decision: stores it in Supabase, hashes it (SHA-256), and anchors the hash in a Solidity smart contract on Sepolia. The anchored hash can be verified later.
 
 ## Architecture
