@@ -21,6 +21,12 @@ MERGED_DATASET_FILE: Path = PROCESSED_DATA_DIR / "merged_dataset.parquet"
 FEATURE_DATASET_FILE: Path = PROCESSED_DATA_DIR / "feature_dataset.parquet"
 LABELED_DATASET_FILE: Path = PROCESSED_DATA_DIR / "labeled_dataset.parquet"
 
+# Full training split (large, git-ignored -- never deployed) and the small
+# sample of it that the /recourse endpoint ships with. DiCE only needs a
+# background dataset to learn feature ranges/categories, not the whole split.
+TRAIN_DATASET_FILE: Path = PROCESSED_DATA_DIR / "train.parquet"
+DICE_BACKGROUND_FILE: Path = PROCESSED_DATA_DIR / "dice_background.parquet"
+
 OUTPUTS_DIR: Path = PROJECT_ROOT / "outputs"
 MODEL_DIR: Path = OUTPUTS_DIR / "models"
 METRICS_DIR: Path = OUTPUTS_DIR / "metrics"

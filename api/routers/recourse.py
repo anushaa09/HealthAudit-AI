@@ -9,7 +9,7 @@ running DiCE's search pointlessly.
 """
 
 import pandas as pd
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from api.dependencies import get_classifier, get_dice_explainer
 from api.schemas import ClaimFeatures, Counterfactual, RecourseChange, RecourseResponse
@@ -48,13 +48,37 @@ def get_recourse(
         )
 
     logger.info("Generating DiCE recourse for a Deny-predicted claim...")
-    cfs_df = generate_recourse(
-        dice_explainer,
-        variable_features,
-        claim_df[classifier.feature_columns],
-        total_cfs=TOTAL_COUNTERFACTUALS,
-        permitted_range=permitted_range,
-    )
+    try:
+        cfs_df = generate_recourse(
+            dice_explainer,
+            variable_features,
+            claim_df[classifier.feature_columns],
+            total_cfs=TOTAL_COUNTERFACTUALS,
+            permitted_range=permitted_range,
+        )
+    except Exception as exc:
+        # DiCE raises (rather than returning nothing) when its search finds
+        # no counterfactual within the allowed features and ranges. That is
+        # a legitimate outcome, not a server error.
+        if "No counterfactuals found" in str(exc):
+            logger.info("DiCE found no counterfactuals for this claim.")
+            cfs_df = None
+        else:
+            logger.exception("DiCE counterfactual generation failed")
+            raise HTTPException(
+                status_code=500,
+                detail="Counterfactual generation failed.",
+            ) from exc
+
+    if cfs_df is None or len(cfs_df) == 0:
+        return RecourseResponse(
+            applicable=True,
+            message=(
+                "This claim was predicted Deny, but no allowed change to the "
+                "adjustable claim features was found that would flip the decision."
+            ),
+            counterfactuals=[],
+        )
 
     original_row = claim_df.iloc[0]
     counterfactuals = []

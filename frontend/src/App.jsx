@@ -2,7 +2,26 @@ import { useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE = 'https://healthaudit-ai.onrender.com';
+// Defaults to the deployed backend. For local testing, set VITE_API_URL in
+// frontend/.env.local (e.g. VITE_API_URL=http://127.0.0.1:8000).
+const API_BASE = import.meta.env.VITE_API_URL || 'https://healthaudit-ai.onrender.com';
+
+// Turns an axios error into a readable string. The backend can return
+// `detail` as a string, a validation-error list, or an object (for example
+// when the audit record was saved but blockchain anchoring failed).
+function getErrorMessage(err) {
+  const detail = err.response?.data?.detail;
+  if (Array.isArray(detail)) {
+    return detail[0]?.msg || 'Some of the claim details could not be validated.';
+  }
+  if (typeof detail === 'string') return detail;
+  if (detail && typeof detail === 'object') {
+    const reference = detail.decision_id ? ` Reference: ${detail.decision_id}` : '';
+    return `${detail.message || 'The claim service reported a problem.'}${reference}`;
+  }
+  if (err.response) return 'The claim service reported a problem. Please try again.';
+  return 'We could not reach the claim service. Check that the backend is running.';
+}
 
 const CONDITIONS = [
   { key: 'alzheimer', label: "Alzheimer's / Dementia", severity: 2 },
@@ -20,6 +39,7 @@ const CONDITIONS = [
 
 const initialForm = {
   patientId: '',
+  claimId: '',
   name: '',
   age: '',
   sex: '1',
@@ -152,8 +172,33 @@ function readableFeatureName(feature) {
     numeric__cost_per_claim: 'Overall cost of care',
     numeric__age: 'Age',
   };
-  if (nameMap[feature]) return nameMap[feature];
+  // SHAP factors arrive as "numeric__<name>"; recourse suggestions arrive as "<name>".
+  const prefixed = feature.startsWith('numeric__') ? feature : `numeric__${feature}`;
+  if (nameMap[prefixed]) return nameMap[prefixed];
+  const extraNames = {
+    total_inpatient_claims: 'Number of hospital stays',
+    total_inpatient_primary_payer_amt_log: 'Hospital costs paid by other insurance',
+    total_outpatient_primary_payer_amt_log: 'Outpatient costs paid by other insurance',
+  };
+  if (extraNames[feature]) return extraNames[feature];
   return feature.replace(/^numeric__/, '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// Recourse values come back in the model's units (log-scaled dollars and days).
+// Convert them to something a person can read.
+function formatRecourseValue(feature, value) {
+  const name = feature.replace(/^numeric__/, '');
+  const n = Number(value);
+  if (Number.isNaN(n)) return String(value);
+  const dollars = (x) => `$${Math.round(x).toLocaleString('en-US')}`;
+  if (name.endsWith('_days_log')) {
+    const days = Math.round(Math.expm1(n));
+    return `${days} day${days === 1 ? '' : 's'}`;
+  }
+  if (name.endsWith('_amt_log')) return dollars(Math.expm1(n));
+  if (name === 'cost_per_claim' || /^(MEDREIMB|BENRES|PPPYMT)_/.test(name)) return dollars(n);
+  if (name.startsWith('total_') || name.startsWith('distinct_')) return String(Math.round(n));
+  return String(Math.round(n * 10) / 10);
 }
 
 function buildPlainReason(result) {
@@ -191,7 +236,10 @@ function buildPlainRecourse(recourse) {
   if (cfs.length === 0) return 'The system did not return specific suggestions for this claim.';
   const parts = cfs.map((cf, i) => {
     const changes = (cf.changes || [])
-      .map((c) => `${readableFeatureName(c.feature)} changing from ${c.from_value} to ${c.to_value}`)
+      .map(
+        (c) =>
+          `${readableFeatureName(c.feature)} changing from ${formatRecourseValue(c.feature, c.from_value)} to ${formatRecourseValue(c.feature, c.to_value)}`
+      )
       .join(', ');
     return `Option ${i + 1}: ${changes}`;
   });
@@ -250,9 +298,10 @@ function App() {
     setAnchorInfo(null);
     try {
       const features = estimateClaimFeatures(form);
-features.patient_id = form.patientId?.trim() || null;
+      features.patient_id = form.patientId?.trim() || null;
+      features.claim_id = form.claimId?.trim() || null;
 
-const res = await axios.post(`${API_BASE}/predict`, features);
+      const res = await axios.post(`${API_BASE}/predict`, features);
       setResult(res.data);
 
       if (res.data.predicted_label_name === 'Deny') {
@@ -264,11 +313,7 @@ const res = await axios.post(`${API_BASE}/predict`, features);
         }
       }
     } catch (err) {
-      setError(
-        err.response?.data?.detail?.[0]?.msg ||
-        err.response?.data?.detail ||
-        'We could not reach the claim service. Check that the backend is running.'
-      );
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -326,16 +371,6 @@ const handleAnchor = async () => {
   </label>
 </div>
           <div className="field-row">
-            <label>
-  Patient ID
-  <input
-    type="text"
-    value={form.patientId}
-    onChange={(e) => set('patientId', e.target.value)}
-    placeholder="e.g. PAT-001"
-    required
-  />
-</label>
             <label>
               Full name
               <input type="text" value={form.name} onChange={(e) => set('name', e.target.value)} required />
